@@ -1,0 +1,80 @@
+---
+
+  - name: Update Repository Index Ubuntu
+    tags: always
+    apt:
+      update_cache: yes
+
+    changed_when: false
+    when: ansible_distribution == "Ubuntu"
+
+  - name: Install prereqs
+    apt:
+      name:
+        - default-jre
+        - apt-transport-https
+        - curl
+        - software-properties-common
+      state: present
+    become: yes
+
+  - name: Elastic-search APT repo key addition
+    apt_key:
+      url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+    become: yes
+
+  - name: Repo of Elastic-search addition
+    apt_repository:
+      repo: "deb https://artifacts.elastic.co/packages/7.x/apt stable main"
+      state: present
+    become: yes
+
+  - name: Elastic-search Insallation
+    apt:
+      name: elasticsearch
+      state: present
+    become: yes
+
+  - name: Starting and Enabling Elastic-search services
+    systemd:
+      name: elasticsearch
+      enabled: yes
+      state: started
+    become: yes
+
+  - name: Kibana Installation
+    apt:
+      name: kibana
+      state: present
+    become: yes
+
+  - name: Starting and Enabling Kibana Services
+    systemd:
+      name: kibana
+      enabled: yes
+      state: started
+    become: yes
+
+
+  - name: Logstash Installation
+    apt:
+      name: logstash
+      state: present
+    become: yes
+
+
+  - name: Starting and Enabling Logstash Services
+    systemd:
+      name: logstash
+      enabled: yes
+      state: started
+    become: yes
+
+  - name: Elastic-search and Kibana System Restart
+    systemd:
+      name: "{{ item }}"
+      state: restarted
+    loop:
+      - elasticsearch
+      - kibana
+

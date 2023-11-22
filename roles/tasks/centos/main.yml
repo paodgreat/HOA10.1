@@ -1,0 +1,83 @@
+---
+
+  - name: Update Repository Index CentOS
+    tags: always
+    yum:
+      update_cache: yes
+
+    changed_when: false
+    when: ansible_distribution == "CentOS"
+
+
+  - name: cache update for CentOS to enable nagios
+    yum:
+      name: epel-release
+      state: latest
+
+    changed_when: false
+    when: ansible_distribution == "CentOS"
+
+  - name: Install prereqs
+    yum:
+      name:
+        - java-1.8.0-openjdk
+        - wget
+        - which
+      state: present
+    become: yes
+
+  - name: Elastic-search RPM repo addition
+    shell: rpm --import https://artifacts.elastic.co/GPG-KEY-elasticsearch
+
+  - name: Elastic-search YUM repo addition
+    copy:
+      content: |
+        [elasticsearch-7.x]
+        name = Elasticsearch repository for 7.x packages
+        baseurl = https://artifacts.elastic.co/packages/7.x/yum
+        gpgcheck = 1
+        gpgkey = https://artifacts.elastic.co/GPG-KEY-elasticsearch
+        enabled = 1
+        autorefresh = 1
+        type = rpm-md
+      dest: /etc/yum.repos.d/elasticsearch.repo
+    become: yes
+
+  - name: Elastic-search Installation
+    yum:
+      name: elasticsearch
+      state: present
+    become: yes
+
+  - name: Starting and Enabling Elastic-search Services
+    systemd:
+      name: elasticsearch
+      enabled: yes
+      state: started
+    become: yes
+
+  - name: Kibana Installation
+    yum:
+      name: kibana
+      state: present
+    become: yes
+
+  - name: Starting and Enabling Kibana Services
+    systemd:
+      name: kibana
+      enabled: yes
+      state: started
+    become: yes
+
+  - name: Logstash Installation
+    yum:
+      name: logstash
+      state: present
+    become: yes
+
+  - name: Starting and Enabling Logstash Services
+    systemd:
+      name: logstash
+      enabled: yes
+      state: started
+    become: yes
